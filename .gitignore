@@ -1,5 +1,18 @@
+# .NET
 bin/
 obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
+[Tt]emp/
+_ReSharper*/
+*.user
+*.userosscache
+*.sln.docstate
+
+# Rider / IntelliJ
+.idea/
+*.DotSettings.user
+
+# Mac
+.DS_Store
+
+# Docker
+.dockerignore
