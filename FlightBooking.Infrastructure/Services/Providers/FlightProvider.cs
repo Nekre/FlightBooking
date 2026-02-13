@@ -19,7 +19,8 @@ public class AirSearchFlightProvider : IFlightProvider
         {
             Origin = request.Origin,
             Destination = request.Destination,
-            DepartureDate = request.DepartureDate
+            DepartureDate = request.DepartureDate,
+            
         };
 
         var soapResponse = await _airSearchClient.AvailabilitySearchAsync(soapRequest);
@@ -29,6 +30,8 @@ public class AirSearchFlightProvider : IFlightProvider
         return soapResponse.FlightOptions.Select(item => new FlightDto
         {
             FlightNumber = item.FlightNumber,
+            Origin = request.Origin,
+            Destination = request.Destination,
             Price = item.Price,
             DepartureTime = item.DepartureDateTime,
             ArrivalTime = item.ArrivalDateTime

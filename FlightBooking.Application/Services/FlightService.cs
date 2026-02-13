@@ -5,6 +5,7 @@ namespace FlightBooking.Application.Services;
 
 public class FlightSearchService : IFlightService
 {
+    private static readonly TimeSpan SearchCacheTtl = TimeSpan.FromMinutes(10);
     private readonly IEnumerable<IFlightProvider> _providers;
     private readonly ICacheService _cacheService;
 
@@ -28,7 +29,17 @@ public class FlightSearchService : IFlightService
 
         if (allFlights.Any())
         {
-            await _cacheService.SetAsync(cacheKey, allFlights, TimeSpan.FromMinutes(10));
+            foreach (var flight in allFlights)
+            {
+                flight.Id = $"{flight.FlightNumber}_{flight.DepartureTime:yyyyMMddHHmm}";
+                flight.Origin = request.Origin;
+                flight.Destination = request.Destination;
+
+                string flightCacheKey = $"Flight_{flight.Id}";
+                await _cacheService.SetAsync(flightCacheKey, flight, SearchCacheTtl);
+            }
+
+            await _cacheService.SetAsync(cacheKey, allFlights, SearchCacheTtl);
         }
 
         return allFlights;

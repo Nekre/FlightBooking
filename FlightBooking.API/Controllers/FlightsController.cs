@@ -1,3 +1,4 @@
+using FlightBooking.Application.Features.Flights.Queries.GetById;
 using FlightBooking.Application.Features.Flights.Queries.Search;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -15,5 +16,13 @@ public class FlightsController : ControllerBase
     {
         var results = await _mediator.Send(query);
         return results.Any() ? Ok(results) : NotFound();
+    }
+
+    [HttpGet("{flightId}")]
+    public async Task<IActionResult> GetById(string flightId)
+    {
+        var query = new GetFlightByIdQuery(flightId);
+        var result = await _mediator.Send(query);
+        return result != null ? Ok(result) : NotFound(new { message = "Flight not found in cache" });
     }
 }

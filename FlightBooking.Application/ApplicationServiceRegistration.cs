@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using FlightBooking.Application.Behaviors;
+using FlightBooking.Application.Interfaces;
+using FlightBooking.Application.Services;
 using FluentValidation;
 using MediatR;
 
@@ -17,6 +19,8 @@ public static class ApplicationServiceRegistration
         services.AddValidatorsFromAssembly(assembly);
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        services.AddScoped<IFlightService, FlightSearchService>();
 
         return services;
     }

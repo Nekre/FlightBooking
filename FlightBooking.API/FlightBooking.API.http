@@ -1,6 +1,13 @@
 @FlightBooking.API_HostAddress = http://localhost:5259
 
-GET {{FlightBooking.API_HostAddress}}/weatherforecast/
+
+###
+
+GET {{FlightBooking.API_HostAddress}}/Flights/search?origin=IST&destination=AMS&departureDate=2026-02-13&returnDate=2026-02-20
+Accept: application/json
+
+###
+GET {{FlightBooking.API_HostAddress}}/Flights/TK123_202602131430
 Accept: application/json
 
 ###
