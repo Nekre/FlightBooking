@@ -1,5 +1,6 @@
 using FlightBooking.Application.DTOs;
 using FlightBooking.Application.Interfaces;
+using FlightBooking.Application.Utilities;
 
 namespace FlightBooking.Application.Services;
 
@@ -17,7 +18,7 @@ public class FlightSearchService : IFlightService
 
     public async Task<List<FlightDto>> SearchAsync(SearchRequestDto request)
     {
-        string cacheKey = $"Search_{request.Origin}_{request.Destination}_{request.DepartureDate:yyyyMMdd}";
+        var cacheKey = CacheKeys.SearchKey(request);
 
         var cachedResults = await _cacheService.GetAsync<List<FlightDto>>(cacheKey);
         if (cachedResults != null) return cachedResults;
@@ -35,7 +36,7 @@ public class FlightSearchService : IFlightService
                 flight.Origin = request.Origin;
                 flight.Destination = request.Destination;
 
-                string flightCacheKey = $"Flight_{flight.Id}";
+                string flightCacheKey = CacheKeys.FlightKey(flight.Id);
                 await _cacheService.SetAsync(flightCacheKey, flight, SearchCacheTtl);
             }
 

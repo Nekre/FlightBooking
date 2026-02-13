@@ -20,7 +20,8 @@ public class SearchFlightsHandler : IRequestHandler<SearchFlightsQuery, List<Fli
         {
             Origin = request.Origin,
             Destination = request.Destination,
-            DepartureDate = request.DepartureDate
+            DepartureDate = request.DepartureDate,
+            ReturnDate = request.ReturnDate
         };
 
         return await _flightService.SearchAsync(searchRequest);

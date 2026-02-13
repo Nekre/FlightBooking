@@ -3,5 +3,5 @@ using MediatR;
 
 namespace FlightBooking.Application.Features.Flights.Queries.Search;
 
-public record SearchFlightsQuery(string? Origin, string? Destination, DateTime DepartureDate,DateTime ReturnDate) 
+public record SearchFlightsQuery(string? Origin, string? Destination, DateTime DepartureDate, DateTime? ReturnDate)
     : IRequest<List<FlightDto>>;

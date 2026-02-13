@@ -1,6 +1,7 @@
 using FlightBooking.Application.DTOs;
 using FlightBooking.Application.Interfaces;
 using MediatR;
+using FlightBooking.Application.Utilities;
 
 namespace FlightBooking.Application.Features.Flights.Queries.GetById;
 
@@ -15,9 +16,9 @@ public class GetFlightByIdHandler : IRequestHandler<GetFlightByIdQuery, FlightDt
 
     public async Task<FlightDto?> Handle(GetFlightByIdQuery request, CancellationToken cancellationToken)
     {
-        string cacheKey = $"Flight_{request.FlightId}";
+        string cacheKey = CacheKeys.FlightKey(request.FlightId);
         var flight = await _cacheService.GetAsync<FlightDto>(cacheKey, cancellationToken);
-        
+
         return flight;
     }
 }

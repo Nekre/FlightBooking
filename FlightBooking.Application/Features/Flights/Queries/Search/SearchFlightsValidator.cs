@@ -19,5 +19,10 @@ public class SearchFlightsValidator : AbstractValidator<SearchFlightsQuery>
         RuleFor(x => x.DepartureDate)
             .GreaterThanOrEqualTo(DateTime.Today)
             .WithMessage("Geçmiş bir tarihe uçuş arayamazsınız.");
+
+        RuleFor(x => x.ReturnDate)
+            .GreaterThanOrEqualTo(x => x.DepartureDate)
+            .WithMessage("Dönüş tarihi, gidiş tarihinden önce olamaz.")
+            .When(x => x.ReturnDate.HasValue);
     }
 }
