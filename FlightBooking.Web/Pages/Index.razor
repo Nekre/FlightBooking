@@ -1,0 +1,237 @@
+@page "/"
+@using FlightBooking.Web.Models
+@using FlightBooking.Web.Services
+@inject IFlightApiService FlightApi
+@inject NavigationManager Navigation
+
+<PageTitle>Flight Search</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">🛫 Uçuş Ara</h3>
+                        <a href="/airports" class="btn btn-light btn-sm">📍 Havalimanları</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@searchModel" OnValidSubmit="@HandleSearch">
+                        <div class="row mb-3">
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label">Kalkış</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       placeholder="Havalimanı ara (örn: Istanbul, IST)"
+                                       value="@searchModel.Origin"
+                                       @oninput="(e) => { searchModel.Origin = e.Value?.ToString() ?? string.Empty; OnOriginInput(); }"
+                                       @onfocus="() => showOriginDropdown = !string.IsNullOrEmpty(searchModel.Origin) && searchModel.Origin.Length >= 2" />
+                                @if (showOriginDropdown && !string.IsNullOrEmpty(searchModel.Origin) && airports != null)
+                                {
+                                    var filtered = airports.Where(a => 
+                                        a.Code.Contains(searchModel.Origin, StringComparison.OrdinalIgnoreCase) ||
+                                        a.Name.Contains(searchModel.Origin, StringComparison.OrdinalIgnoreCase) ||
+                                        a.City.Contains(searchModel.Origin, StringComparison.OrdinalIgnoreCase)
+                                    ).Take(5).ToList();
+                                    
+                                    @if (filtered.Any() && searchModel.Origin.Length >= 2)
+                                    {
+                                        <div class="autocomplete-dropdown list-group mt-1">
+                                            @foreach (var airport in filtered)
+                                            {
+                                                <button type="button" 
+                                                        class="list-group-item list-group-item-action text-start"
+                                                        @onclick="() => SelectOrigin(airport.Code)">
+                                                    <strong>@airport.Code</strong> - @airport.Name, @airport.City
+                                                </button>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label">Varış</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       placeholder="Havalimanı ara (örn: Amsterdam, AMS)"
+                                       value="@searchModel.Destination"
+                                       @oninput="(e) => { searchModel.Destination = e.Value?.ToString() ?? string.Empty; OnDestinationInput(); }"
+                                       @onfocus="() => showDestinationDropdown = !string.IsNullOrEmpty(searchModel.Destination) && searchModel.Destination.Length >= 2" />
+                                @if (showDestinationDropdown && !string.IsNullOrEmpty(searchModel.Destination) && airports != null)
+                                {
+                                    var filtered = airports.Where(a => 
+                                        a.Code.Contains(searchModel.Destination, StringComparison.OrdinalIgnoreCase) ||
+                                        a.Name.Contains(searchModel.Destination, StringComparison.OrdinalIgnoreCase) ||
+                                        a.City.Contains(searchModel.Destination, StringComparison.OrdinalIgnoreCase)
+                                    ).Take(5).ToList();
+                                    
+                                    @if (filtered.Any() && searchModel.Destination.Length >= 2)
+                                    {
+                                        <div class="autocomplete-dropdown list-group mt-1">
+                                            @foreach (var airport in filtered)
+                                            {
+                                                <button type="button" 
+                                                        class="list-group-item list-group-item-action text-start"
+                                                        @onclick="() => SelectDestination(airport.Code)">
+                                                    <strong>@airport.Code</strong> - @airport.Name, @airport.City
+                                                </button>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Gidiş Tarihi</label>
+                                <InputDate @bind-Value="searchModel.DepartureDate" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Dönüş Tarihi (Opsiyonel)</label>
+                                <InputDate @bind-Value="searchModel.ReturnDate" class="form-control" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Aranıyor...</span>
+                            }
+                            else
+                            {
+                                <span>🔍 Uçuş Ara</span>
+                            }
+                        </button>
+                    </EditForm>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @errorMessage
+                        </div>
+                    }
+
+                    @if (flights != null && flights.Any())
+                    {
+                        <div class="mt-4">
+                            <h5 class="mb-3">@flights.Count Uçuş Bulundu</h5>
+                            <div class="list-group">
+                                @foreach (var flight in flights)
+                                {
+                                    <a href="/flight/@flight.Id" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">@flight.FlightNumber</h5>
+                                            <span class="badge bg-success">@flight.Price.ToString("C")</span>
+                                        </div>
+                                        <p class="mb-1">
+                                            @flight.Origin → @flight.Destination
+                                        </p>
+                                        <small>
+                                            @flight.DepartureTime.ToString("dd MMM HH:mm") - 
+                                            @flight.ArrivalTime.ToString("dd MMM HH:mm") 
+                                            (@flight.Duration.ToString(@"hh\:mm"))
+                                        </small>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else if (flights != null && !flights.Any() && !isLoading)
+                    {
+                        <div class="alert alert-info mt-3">
+                            Üzgünüz, aradığınız kriterlerde uçuş bulunamadı.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SearchModel searchModel = new() { DepartureDate = DateTime.Today.AddDays(1) };
+    private List<FlightDto>? flights;
+    private List<AirportDto>? airports;
+    private bool isLoading;
+    private string? errorMessage;
+    private bool showOriginDropdown;
+    private bool showDestinationDropdown;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            airports = await FlightApi.GetAirportsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading airports: {ex.Message}");
+        }
+    }
+
+    private void SelectOrigin(string code)
+    {
+        searchModel.Origin = code;
+        showOriginDropdown = false;
+        StateHasChanged();
+    }
+
+    private void SelectDestination(string code)
+    {
+        searchModel.Destination = code;
+        showDestinationDropdown = false;
+        StateHasChanged();
+    }
+
+    private void OnOriginInput()
+    {
+        showOriginDropdown = !string.IsNullOrEmpty(searchModel.Origin) && searchModel.Origin.Length >= 2;
+    }
+
+    private void OnDestinationInput()
+    {
+        showDestinationDropdown = !string.IsNullOrEmpty(searchModel.Destination) && searchModel.Destination.Length >= 2;
+    }
+
+    private async Task HandleSearch()
+    {
+        errorMessage = null;
+        isLoading = true;
+        flights = null;
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(searchModel.Origin) || string.IsNullOrWhiteSpace(searchModel.Destination))
+            {
+                errorMessage = "Lütfen kalkış ve varış noktalarını giriniz.";
+                return;
+            }
+
+            flights = await FlightApi.SearchFlightsAsync(
+                searchModel.Origin,
+                searchModel.Destination,
+                searchModel.DepartureDate,
+                searchModel.ReturnDate
+            );
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Bir hata oluştu: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class SearchModel
+    {
+        public string Origin { get; set; } = string.Empty;
+        public string Destination { get; set; } = string.Empty;
+        public DateTime DepartureDate { get; set; }
+        public DateTime? ReturnDate { get; set; }
+    }
+}

@@ -1,0 +1,122 @@
+@page "/flight/{FlightId}"
+@using FlightBooking.Web.Models
+@using FlightBooking.Web.Services
+@inject IFlightApiService FlightApi
+@inject NavigationManager Navigation
+
+<PageTitle>Flight Details</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Yükleniyor...</span>
+                    </div>
+                </div>
+            }
+            else if (flight != null)
+            {
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="mb-0">✈️ Uçuş Detayı</h3>
+                            <button class="btn btn-light btn-sm" @onclick="GoBack">
+                                ← Geri
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h4 class="text-center mb-4">@flight.FlightNumber</h4>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-5 text-center">
+                                <h5>@flight.Origin</h5>
+                                <p class="text-muted">Kalkış</p>
+                                <h3>@flight.DepartureTime.ToString("HH:mm")</h3>
+                                <p>@flight.DepartureTime.ToString("dd MMMM yyyy")</p>
+                            </div>
+                            <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
+                                <div>
+                                    <i class="bi bi-arrow-right fs-1"></i>
+                                    <p class="text-muted small">@flight.Duration.ToString(@"hh\:mm")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-5 text-center">
+                                <h5>@flight.Destination</h5>
+                                <p class="text-muted">Varış</p>
+                                <h3>@flight.ArrivalTime.ToString("HH:mm")</h3>
+                                <p>@flight.ArrivalTime.ToString("dd MMMM yyyy")</p>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Uçuş Bilgileri</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Uçuş No:</strong> @flight.FlightNumber</li>
+                                    <li><strong>ID:</strong> @flight.Id</li>
+                                    <li><strong>Süre:</strong> @flight.Duration.ToString(@"hh\:mm")</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h6>Fiyat Bilgisi</h6>
+                                <h2 class="text-success">@flight.Price.ToString("C")</h2>
+                                <button class="btn btn-success btn-lg mt-3">
+                                    🎫 Rezervasyon Yap
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <h4>Uçuş Bulunamadı</h4>
+                    <p>Aradığınız uçuş bilgisi bulunamadı veya cache'den silinmiş olabilir.</p>
+                    <button class="btn btn-primary" @onclick="GoBack">
+                        ← Aramaya Dön
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string FlightId { get; set; } = string.Empty;
+
+    private FlightDto? flight;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            flight = await FlightApi.GetFlightByIdAsync(FlightId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading flight: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

@@ -1,0 +1,118 @@
+@page "/airports"
+@using FlightBooking.Web.Services
+@inject IFlightApiService FlightApi
+
+<PageTitle>Airports</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">✈️ Havalimanları</h3>
+                        <a href="/" class="btn btn-light btn-sm">← Ana Sayfa</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                            <p class="mt-3">Havalimanları yükleniyor...</p>
+                        </div>
+                    }
+                    else if (airports != null && airports.Any())
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <input type="text" 
+                                       class="form-control" 
+                                       placeholder="🔍 Havalimanı ara (kod, şehir veya isim)..." 
+                                       @bind="searchText"
+                                       @bind:event="oninput" />
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Kod</th>
+                                        <th>Havalimanı Adı</th>
+                                        <th>Şehir</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var airport in FilteredAirports)
+                                    {
+                                        <tr>
+                                            <td><span class="badge bg-primary">@airport.Code</span></td>
+                                            <td>@airport.Name</td>
+                                            <td>@airport.City</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                Toplam @airports.Count havalimanı, @FilteredAirports.Count gösteriliyor
+                            </small>
+                        </div>
+                    }
+                    else if (!isLoading)
+                    {
+                        <div class="alert alert-warning">
+                            <h5>Havalimanı Bulunamadı</h5>
+                            <p>Henüz havalimanı verisi yüklenmedi veya bir hata oluştu.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<AirportDto>? airports;
+    private bool isLoading = true;
+    private string searchText = string.Empty;
+
+    private List<AirportDto> FilteredAirports
+    {
+        get
+        {
+            if (airports == null) return new List<AirportDto>();
+            
+            if (string.IsNullOrWhiteSpace(searchText))
+                return airports;
+
+            var search = searchText.ToLower();
+            return airports.Where(a => 
+                a.Code.ToLower().Contains(search) ||
+                a.Name.ToLower().Contains(search) ||
+                a.City.ToLower().Contains(search)
+            ).ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            airports = await FlightApi.GetAirportsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading airports: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
