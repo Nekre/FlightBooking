@@ -14,8 +14,8 @@ public class FlightsController : ControllerBase
     [HttpGet("search")]
     public async Task<IActionResult> Search([FromQuery] SearchFlightsQuery query)
     {
-        var results = await _mediator.Send(query);
-        return results.Any() ? Ok(results) : NotFound();
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
 
     [HttpGet("{flightId}")]

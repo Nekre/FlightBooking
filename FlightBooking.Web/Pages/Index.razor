@@ -114,35 +114,70 @@
                         </div>
                     }
 
-                    @if (flights != null && flights.Any())
+                    @if (searchResponse != null)
                     {
                         <div class="mt-4">
-                            <h5 class="mb-3">@flights.Count Uçuş Bulundu</h5>
-                            <div class="list-group">
-                                @foreach (var flight in flights)
-                                {
-                                    <a href="/flight/@flight.Id" class="list-group-item list-group-item-action">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h5 class="mb-1">@flight.FlightNumber</h5>
-                                            <span class="badge bg-success">@flight.Price.ToString("C")</span>
-                                        </div>
-                                        <p class="mb-1">
-                                            @flight.Origin → @flight.Destination
-                                        </p>
-                                        <small>
-                                            @flight.DepartureTime.ToString("dd MMM HH:mm") - 
-                                            @flight.ArrivalTime.ToString("dd MMM HH:mm") 
-                                            (@flight.Duration.ToString(@"hh\:mm"))
-                                        </small>
-                                    </a>
-                                }
-                            </div>
-                        </div>
-                    }
-                    else if (flights != null && !flights.Any() && !isLoading)
-                    {
-                        <div class="alert alert-info mt-3">
-                            Üzgünüz, aradığınız kriterlerde uçuş bulunamadı.
+                            @if (searchResponse.OutboundFlights.Any())
+                            {
+                                <div class="mb-5">
+                                    <h5 class="mb-3">
+                                        <span class="badge bg-info">OUTBOUND</span>
+                                        🛫 @searchResponse.OutboundFlights.Count Gidiş Uçuşu
+                                        @if (searchResponse.FromCache)
+                                        {
+                                            <small class="text-muted">(Cache)</small>
+                                        }
+                                    </h5>
+                                    <div class="list-group">
+                                        @foreach (var flight in searchResponse.OutboundFlights)
+                                        {
+                                            <a href="/flight/@flight.Id" class="list-group-item list-group-item-action">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1">@flight.FlightNumber</h5>
+                                                    <span class="badge bg-success">@flight.Price.ToString("C")</span>
+                                                </div>
+                                                <p class="mb-1">
+                                                    @flight.Origin → @flight.Destination
+                                                </p>
+                                                <small>
+                                                    @flight.DepartureTime.ToString("dd MMM HH:mm") - 
+                                                    @flight.ArrivalTime.ToString("dd MMM HH:mm") 
+                                                    (@flight.Duration.ToString(@"hh\:mm"))
+                                                </small>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            @if (searchResponse.InboundFlights.Any())
+                            {
+                                <div class="mb-5">
+                                    <h5 class="mb-3">
+                                        <span class="badge bg-warning">INBOUND</span>
+                                        🛬 @searchResponse.InboundFlights.Count Dönüş Uçuşu
+                                    </h5>
+                                    <div class="list-group">
+                                        @foreach (var flight in searchResponse.InboundFlights)
+                                        {
+                                            <a href="/flight/@flight.Id" class="list-group-item list-group-item-action">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1">@flight.FlightNumber</h5>
+                                                    <span class="badge bg-success">@flight.Price.ToString("C")</span>
+                                                </div>
+                                                <p class="mb-1">
+                                                    @flight.Origin → @flight.Destination
+                                                </p>
+                                                <small>
+                                                    @flight.DepartureTime.ToString("dd MMM HH:mm") - 
+                                                    @flight.ArrivalTime.ToString("dd MMM HH:mm") 
+                                                    (@flight.Duration.ToString(@"hh\:mm"))
+                                                </small>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -153,7 +188,7 @@
 
 @code {
     private SearchModel searchModel = new() { DepartureDate = DateTime.Today.AddDays(1) };
-    private List<FlightDto>? flights;
+    private SearchResponseDto? searchResponse;
     private List<AirportDto>? airports;
     private bool isLoading;
     private string? errorMessage;
@@ -200,7 +235,7 @@
     {
         errorMessage = null;
         isLoading = true;
-        flights = null;
+        searchResponse = null;
 
         try
         {
@@ -210,12 +245,17 @@
                 return;
             }
 
-            flights = await FlightApi.SearchFlightsAsync(
+            searchResponse = await FlightApi.SearchFlightsAsync(
                 searchModel.Origin,
                 searchModel.Destination,
                 searchModel.DepartureDate,
                 searchModel.ReturnDate
             );
+
+            if (searchResponse == null)
+            {
+                errorMessage = "Arama sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+            }
         }
         catch (Exception ex)
         {
@@ -235,3 +275,4 @@
         public DateTime? ReturnDate { get; set; }
     }
 }
+

@@ -5,7 +5,7 @@ using FlightBooking.Application.Interfaces;
 
 namespace FlightBooking.Application.Features.Flights.Queries.SearchFlights;
 
-public class SearchFlightsHandler : IRequestHandler<SearchFlightsQuery, List<FlightDto>>
+public class SearchFlightsHandler : IRequestHandler<SearchFlightsQuery, SearchResponseDto>
 {
     private readonly IFlightService _flightService;
 
@@ -14,7 +14,7 @@ public class SearchFlightsHandler : IRequestHandler<SearchFlightsQuery, List<Fli
         _flightService = flightService;
     }
 
-    public async Task<List<FlightDto>> Handle(SearchFlightsQuery request, CancellationToken cancellationToken)
+    public async Task<SearchResponseDto> Handle(SearchFlightsQuery request, CancellationToken cancellationToken)
     {
         var searchRequest = new SearchRequestDto
         {
