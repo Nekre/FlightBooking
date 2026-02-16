@@ -16,24 +16,31 @@ public class FlightSearchService : IFlightService
         _cacheService = cacheService;
     }
 
-    public async Task<SearchResponseDto> SearchAsync(SearchRequestDto request)
+    public async Task<SearchResponseDto> SearchAsync(SearchRequestDto request, CancellationToken cancellationToken)
     {
         var cacheKey = CacheKeys.SearchKey(request);
-        var cachedResponse = await _cacheService.GetAsync<SearchResponseDto>(cacheKey);
+        var cachedResponse = await _cacheService.GetAsync<SearchResponseDto>(cacheKey,cancellationToken);
         if (cachedResponse != null)
         {
             cachedResponse.FromCache = true;
             return cachedResponse;
         }
 
-        var outboundFlights = await SearchFlightsFromProvidersAsync(request);
-
-        var inboundFlights = new List<FlightDto>();
         var inboundRequest = request.CreateInboundRequest();
-        if (inboundRequest != null)
-        {
-            inboundFlights = await SearchFlightsFromProvidersAsync(inboundRequest);
-        }
+
+        var outboundTask =
+            SearchFlightsFromProvidersAsync(request, cancellationToken);
+
+        Task<List<FlightDto>> inboundTask =
+            inboundRequest != null
+                ? SearchFlightsFromProvidersAsync(inboundRequest, cancellationToken)
+                : Task.FromResult(new List<FlightDto>());
+
+        await Task.WhenAll(outboundTask, inboundTask);
+
+        var outboundFlights = await outboundTask;
+        var inboundFlights = await inboundTask;
+
 
         EnrichFlights(outboundFlights, request);
         EnrichFlights(inboundFlights, inboundRequest);
@@ -42,16 +49,16 @@ public class FlightSearchService : IFlightService
 
         if (allFlights.Any())
         {
-            await CacheFlightsAsync(allFlights, cacheKey);
+            await CacheFlightsAsync(allFlights, cacheKey,cancellationToken);
         }
 
         return BuildSearchResponse(outboundFlights, inboundFlights);
     }
 
 
-    private async Task<List<FlightDto>> SearchFlightsFromProvidersAsync(SearchRequestDto request)
+    private async Task<List<FlightDto>> SearchFlightsFromProvidersAsync(SearchRequestDto request, CancellationToken cancellationToken)
     {
-        var tasks = _providers.Select(p => p.GetFlightsAsync(request));
+        var tasks = _providers.Select(p => p.GetFlightsAsync(request, cancellationToken));
         var resultsArray = await Task.WhenAll(tasks);
         return resultsArray.SelectMany(f => f).ToList();
     }
@@ -69,19 +76,20 @@ public class FlightSearchService : IFlightService
         flight.Id = $"{flight.FlightNumber}_{flight.DepartureTime:yyyyMMddHHmm}";
     }
     
-    private async Task CacheFlightsAsync(List<FlightDto> flights, string searchCacheKey)
+    private async Task CacheFlightsAsync(List<FlightDto> flights, string searchCacheKey, CancellationToken cancellationToken)
     {
         var flightCacheTasks = flights.Select(flight =>
             _cacheService.SetAsync(
                 CacheKeys.FlightKey(flight.Id),
                 flight,
-                SearchCacheTtl
+                SearchCacheTtl,
+                cancellationToken
             )
         );
 
         await Task.WhenAll(flightCacheTasks);
 
-        await _cacheService.SetAsync(searchCacheKey, flights, SearchCacheTtl);
+        await _cacheService.SetAsync(searchCacheKey, flights, SearchCacheTtl, cancellationToken);
     }
     
     private SearchResponseDto BuildSearchResponse(List<FlightDto> outboundFlights, List<FlightDto> inboundFlights)

@@ -16,13 +16,8 @@ public class GetAirportsHandler : IRequestHandler<GetAirportsQuery, List<Airport
 
     public async Task<List<AirportDto>> Handle(GetAirportsQuery request, CancellationToken cancellationToken)
     {
-        var airports = await _context.Airports
-            .Select(a => new AirportDto
-            {
-                Code = a.Code,
-                Name = a.Name,
-                City = a.City
-            })
+        var airports = await _context.Airports.AsNoTracking()
+            .Select(a => new AirportDto(a.Code, a.Name, a.City))
             .ToListAsync(cancellationToken);
 
         return airports;

@@ -24,6 +24,6 @@ public class SearchFlightsHandler : IRequestHandler<SearchFlightsQuery, SearchRe
             ReturnDate = request.ReturnDate
         };
 
-        return await _flightService.SearchAsync(searchRequest);
+        return await _flightService.SearchAsync(searchRequest,cancellationToken);
     }
 }

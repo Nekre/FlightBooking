@@ -4,5 +4,5 @@ namespace FlightBooking.Application.Interfaces;
 
 public interface IFlightService
 {
-    Task<SearchResponseDto> SearchAsync(SearchRequestDto request);
+    Task<SearchResponseDto> SearchAsync(SearchRequestDto request,CancellationToken cancellationToken);
 }
