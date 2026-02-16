@@ -27,7 +27,7 @@ public class FlightApiService : IFlightApiService
     public async Task<SearchResponseDto?> SearchFlightsAsync(string origin, string destination, DateTime departureDate, DateTime? returnDate)
     {
         var returnDateParam = returnDate.HasValue ? $"&returnDate={returnDate:yyyy-MM-dd}" : string.Empty;
-        var url = $"/Flights/search?origin={origin}&destination={destination}&departureDate={departureDate:yyyy-MM-dd}{returnDateParam}";
+        var url = $"/Flights?origin={origin}&destination={destination}&departureDate={departureDate:yyyy-MM-dd}{returnDateParam}";
         
         var response = await _httpClient.GetAsync(url);
         

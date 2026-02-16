@@ -1,15 +1,18 @@
 using System.Text.Json;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 
 namespace FlightBooking.API.Middlewares;
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task Invoke(HttpContext context)
@@ -20,6 +23,12 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex,
+                "Unhandled exception. Method: {Method}, Path: {Path}, TraceId: {TraceId}",
+                context.Request.Method,
+                context.Request.Path,
+                context.TraceIdentifier);
+
             await HandleExceptionAsync(context, ex);
         }
     }

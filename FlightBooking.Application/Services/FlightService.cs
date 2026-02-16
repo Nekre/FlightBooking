@@ -1,6 +1,7 @@
 using FlightBooking.Application.DTOs;
 using FlightBooking.Application.Interfaces;
 using FlightBooking.Application.Utilities;
+using Microsoft.Extensions.Logging;
 
 namespace FlightBooking.Application.Services;
 
@@ -9,11 +10,13 @@ public class FlightSearchService : IFlightService
     private static readonly TimeSpan SearchCacheTtl = TimeSpan.FromMinutes(10);
     private readonly IEnumerable<IFlightProvider> _providers;
     private readonly ICacheService _cacheService;
+    private readonly ILogger<FlightSearchService> _logger;
 
-    public FlightSearchService(IEnumerable<IFlightProvider> providers, ICacheService cacheService)
+    public FlightSearchService(IEnumerable<IFlightProvider> providers, ICacheService cacheService, ILogger<FlightSearchService> logger)
     {
         _providers = providers;
         _cacheService = cacheService;
+        _logger = logger;
     }
 
     public async Task<SearchResponseDto> SearchAsync(SearchRequestDto request, CancellationToken cancellationToken)
@@ -49,7 +52,7 @@ public class FlightSearchService : IFlightService
 
         if (allFlights.Any())
         {
-            await CacheFlightsAsync(allFlights, cacheKey,cancellationToken);
+            _ =  CacheFlightsAsync(allFlights, cacheKey,cancellationToken);
         }
 
         return BuildSearchResponse(outboundFlights, inboundFlights);
@@ -78,18 +81,28 @@ public class FlightSearchService : IFlightService
     
     private async Task CacheFlightsAsync(List<FlightDto> flights, string searchCacheKey, CancellationToken cancellationToken)
     {
-        var flightCacheTasks = flights.Select(flight =>
-            _cacheService.SetAsync(
-                CacheKeys.FlightKey(flight.Id),
-                flight,
-                SearchCacheTtl,
-                cancellationToken
-            )
-        );
+        try
+        {
+            var flightCacheTasks = flights.Select(flight =>
+                _cacheService.SetAsync(
+                    CacheKeys.FlightKey(flight.Id),
+                    flight,
+                    SearchCacheTtl,
+                    cancellationToken
+                )
+            );
 
-        await Task.WhenAll(flightCacheTasks);
+            await Task.WhenAll(flightCacheTasks);
 
-        await _cacheService.SetAsync(searchCacheKey, flights, SearchCacheTtl, cancellationToken);
+            await _cacheService.SetAsync(searchCacheKey, flights, SearchCacheTtl, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to write flight cache. SearchKey: {SearchKey}, FlightCount: {FlightCount}",
+                searchCacheKey,
+                flights.Count);
+        }
     }
     
     private SearchResponseDto BuildSearchResponse(List<FlightDto> outboundFlights, List<FlightDto> inboundFlights)

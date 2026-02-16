@@ -11,17 +11,17 @@ public class FlightsController : ControllerBase
 
     public FlightsController(IMediator mediator) => _mediator = mediator;
 
-    [HttpGet("search")]
+    [HttpGet]
     public async Task<IActionResult> Search([FromQuery] SearchFlightsQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
     }
 
-    [HttpGet("{flightId}")]
-    public async Task<IActionResult> GetById(string flightId)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(string id)
     {
-        var query = new GetFlightByIdQuery(flightId);
+        var query = new GetFlightByIdQuery(id);
         var result = await _mediator.Send(query);
         return result != null ? Ok(result) : NotFound(new { message = "Flight not found in cache" });
     }
