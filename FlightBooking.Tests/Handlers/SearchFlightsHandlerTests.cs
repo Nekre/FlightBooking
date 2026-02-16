@@ -4,6 +4,7 @@ using FlightBooking.Application.Interfaces;
 using FlightBooking.Application.Features.Flights.Queries.SearchFlights;
 using Moq;
 using FluentAssertions;
+using Xunit;
 
 namespace FlightBooking.Tests.Handlers;
 

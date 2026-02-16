@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightBooking.Application", "FlightBooking.Application\FlightBooking.Application.csproj", "{66ABC72E-7AB2-46BE-AED7-079FCB5FD334}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightBooking.Domain", "FlightBooking.Domain\FlightBooking.Domain.csproj", "{59BFD414-E69D-4772-9DA8-B3D66417AD6E}"
@@ -9,6 +8,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightBooking.API", "FlightBooking.API\FlightBooking.API.csproj", "{455838E0-45C8-4D35-991D-EDF487B6AA31}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightBooking.Web", "FlightBooking.Web\FlightBooking.Web.csproj", "{A8B9C72E-8AB2-46BE-AED7-179FCB5FD444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightBooking.Tests", "FlightBooking.Tests\FlightBooking.Tests.csproj", "{B9C8D72E-9AB2-46BE-AED7-279FCB5FD555}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,5 +37,9 @@ Global
 		{A8B9C72E-8AB2-46BE-AED7-179FCB5FD444}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8B9C72E-8AB2-46BE-AED7-179FCB5FD444}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8B9C72E-8AB2-46BE-AED7-179FCB5FD444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9C8D72E-9AB2-46BE-AED7-279FCB5FD555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9C8D72E-9AB2-46BE-AED7-279FCB5FD555}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9C8D72E-9AB2-46BE-AED7-279FCB5FD555}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C8D72E-9AB2-46BE-AED7-279FCB5FD555}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

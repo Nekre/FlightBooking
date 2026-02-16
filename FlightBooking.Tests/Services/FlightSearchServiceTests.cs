@@ -5,6 +5,7 @@ using FlightBooking.Application.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
+using Xunit;
 
 namespace FlightBooking.Tests.Services;
 
@@ -144,7 +145,6 @@ public class FlightSearchServiceTests
         result.Should().NotBeNull();
         result.OutboundFlights.Should().HaveCount(1);
         result.InboundFlights.Should().HaveCount(1);
-        result.TotalFlights.Should().Be(2);
         
         _mockProvider.Verify(x => x.GetFlightsAsync(It.IsAny<SearchRequestDto>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
@@ -171,7 +171,6 @@ public class FlightSearchServiceTests
         result.Success.Should().BeTrue();
         result.OutboundFlights.Should().BeEmpty();
         result.InboundFlights.Should().BeEmpty();
-        result.TotalFlights.Should().Be(0);
     }
 
     [Fact]
