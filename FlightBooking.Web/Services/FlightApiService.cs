@@ -58,9 +58,7 @@ public class FlightApiService : IFlightApiService
         }
     }
 
-    /// <summary>
-    /// Internal class to deserialize search response from API.
-    /// </summary>
+
     private class SearchResponse
     {
         public List<FlightDto> OutboundFlights { get; set; } = new();

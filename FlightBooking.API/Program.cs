@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS for Web UI
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebUI", policy =>
