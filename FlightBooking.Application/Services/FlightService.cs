@@ -44,9 +44,8 @@ public class FlightSearchService : IFlightService
         var outboundFlights = await outboundTask;
         var inboundFlights = await inboundTask;
 
-
-        EnrichFlights(outboundFlights, request);
-        EnrichFlights(inboundFlights, inboundRequest);
+        EnrichFlights(outboundFlights);
+        EnrichFlights(inboundFlights);
 
         var allFlights = outboundFlights.Concat(inboundFlights).ToList();
 
@@ -66,15 +65,15 @@ public class FlightSearchService : IFlightService
         return resultsArray.SelectMany(f => f).ToList();
     }
     
-    private void EnrichFlights(List<FlightDto> flights, SearchRequestDto request)
+    private void EnrichFlights(List<FlightDto> flights)
     {
         foreach (var flight in flights)
         {
-            EnrichFlight(flight, request);
+            EnrichFlight(flight);
         }
     }
 
-    private void EnrichFlight(FlightDto flight, SearchRequestDto request)
+    private void EnrichFlight(FlightDto flight)
     {
         flight.Id = $"{flight.FlightNumber}_{flight.DepartureTime:yyyyMMddHHmm}";
     }
