@@ -30,8 +30,9 @@ This starts Redis and SQL Server.
 cd FlightBooking.API
 dotnet run
 ```
-- API: http://localhost:5259
-- Swagger: http://localhost:5259/swagger
+- API (HTTP): http://localhost:5259
+- API (HTTPS): https://localhost:7167
+- Swagger: https://localhost:7167/swagger
 
 ### 3. Run UI (Optional)
 ```bash
@@ -46,23 +47,32 @@ dotnet run
 
 ### Search Flights
 ```
-GET /Flights/search?origin=IST&destination=AMS&departureDate=2026-02-20
+GET /Flights?origin=IST&destination=AMS&departureDate=2026-02-20
 ```
+
+**Query Parameters:**
+- `origin` (string) - Origin airport code
+- `destination` (string) - Destination airport code
+- `departureDate` (datetime) - Departure date (ISO 8601 format)
+- `returnDate` (datetime, optional) - Return date for round trips
 
 **Response:**
 ```json
-[
-  {
-    "id": "TK123_202602201430",
-    "flightNumber": "TK123",
-    "origin": "IST",
-    "destination": "AMS",
-    "departureTime": "2026-02-20T14:30:00",
-    "arrivalTime": "2026-02-20T17:45:00",
-    "price": 450.00,
-    "duration": "03:15:00"
-  }
-]
+{
+  "outboundFlights": [
+    {
+      "id": "TK123_202602201430",
+      "flightNumber": "TK123",
+      "origin": "IST",
+      "destination": "AMS",
+      "departureTime": "2026-02-20T14:30:00Z",
+      "arrivalTime": "2026-02-20T17:45:00Z",
+      "price": 450.00,
+      "duration": "03:15:00"
+    }
+  ],
+  "returnFlights": []
+}
 ```
 
 ### Get Flight Details
@@ -70,7 +80,7 @@ GET /Flights/search?origin=IST&destination=AMS&departureDate=2026-02-20
 GET /Flights/{flightId}
 ```
 
-### Get Airports
+### Get All Airports
 ```
 GET /Airports
 ```
@@ -113,13 +123,15 @@ Edit `appsettings.json`:
 
 ## 📦 Features
 
-- ✅ Flight search with caching (10 min TTL)
-- ✅ Individual flight cache
-- ✅ Airport autocomplete
-- ✅ Automatic database migrations
+- ✅ Flight search with caching support
+- ✅ Individual flight retrieval with cache
+- ✅ Airport listing
+- ✅ Automatic database migrations on startup
 - ✅ Request validation (FluentValidation)
+- ✅ Exception handling middleware
 - ✅ CORS enabled for Web UI
-- ✅ Swagger documentation
+- ✅ HTTP logging
+- ✅ Swagger/OpenAPI documentation
 
 ---
 
@@ -138,7 +150,7 @@ dotnet ef database update --project FlightBooking.Infrastructure --startup-proje
 
 **Port already in use:**
 ```bash
-lsof -i :5259
+lsof -i :5259  # or :7167 for HTTPS
 kill -9 <PID>
 ```
 
